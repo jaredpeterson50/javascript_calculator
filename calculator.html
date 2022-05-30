@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        .grid-container{
+            display:inline-grid;
+            grid-template-columns: 100px 100px 100px 100px;
+            gap:1px;
+            background-color: black;
+        }
+        .grid-container > button {
+            background-color: cyan;
+        }
+        .grid-container > div {
+            background-color: cyan;
+            grid-column: 1 / 5;
+            text-align: right;
+        }
+        #input{
+            text-align: right;
+        }
+        .topLeft {
+            grid-column: 1 / 3;
+        }
+        .topRight {
+            grid-column: 3 / 5;
+        }  
+    </style>
+
+    <script>
+        /*
+        This is my first javascript, css calculator. I ran into some issues naming a function operator so
+        I caled it sign. I also realized I couldn't pass operators as arguments such as *+/- so i passed the
+        string name then converted within the function that adds to the code clutter. I have some duplicate
+        code witin some functions to handle special cases. Variable names can be confusing. I have variables
+        that are for display purposes only and make code readabilty difficult
+        lhs,rhs,operator are for doing the math, previous_input, output are for display.
+        Special cases such as doing several operations instead of just one added to the difficulty.
+        Used CSS grid for the caculator. didn't use seperate CSS or JS files it made editing the code easier,
+        I didn't have to change tabs. Things that I could add to the calculator include keyboard listeners so I
+        can use a keypad and dynamically changing grid for use on mobile device. The HTML editor doesn't like me 
+        passing strings as arguments with onclick but it works ok.
+        */
+        //variables
+        var previous_input = ""; //calc top display
+        var output = "";  //calc second row display
+        var operator = ""; // add mult divide sub
+        var lhs = ""; //left hand side of equation
+        var rhs = ""; //right hand side of equation
+        var total_calc = ""; //total value
+        var is_operator_set = false; //check if we are on lhs or rhs and if we are doing mult operations
+
+        function total(){
+            previous_input += " =";
+            if(operator == 'add')
+                total_calc = Number(lhs) + Number(rhs); //cast to number from string
+            else if(operator == 'sub')
+                total_calc = Number(lhs) - Number(rhs);
+            else if(operator == 'mult')
+                total_calc = Number(lhs) * Number(rhs);
+            else if(operator == 'divide')
+                total_calc = Number(lhs) / Number(rhs);
+            document.getElementById('previous_input').innerHTML=previous_input;
+            document.getElementById('output').innerHTML=total_calc;
+        }
+        function clear_all(){
+            document.getElementById('previous_input').innerHTML="input";
+            document.getElementById('output').innerHTML="output";
+            previous_input = "";
+            output = "";
+            operator = "";
+            lhs = "";
+            rhs = "";
+            total_calc = "";
+            is_operator_set = false;
+        }
+        function del(){
+            if(output.length > 0){
+                output = output.slice(0,-1);
+            if(output.length == 0)
+                document.getElementById('output').innerHTML = "output";
+            else
+                document.getElementById('output').innerHTML = output;
+            }
+        }
+        function operand(number){
+            console.log("operand function");
+            console.log("lhs: " + lhs);
+            console.log("rhs: " + rhs);
+            if(!is_operator_set){ //check if we are on the lhs or rhs of operator
+                lhs += number;
+                output += number;
+                document.getElementById('output').innerHTML=output;
+            }
+            //is_operator_set
+            else{
+                rhs += number;
+                output += number;
+                previous_input += number;
+                document.getElementById('output').innerHTML=output;
+            }
+        }
+        function decimal(){
+            if(!is_operator_set){ //lhs
+                if(!lhs.includes('.')){ //if operand doesn't already have a decimal add one
+                    lhs += '.';
+                    output += '.';
+                    document.getElementById('output').innerHTML=output;
+                }
+            }
+            else{ //rhs
+                if(!rhs.includes('.')){ //if operand doesn't already have a decimal add one
+                    rhs += '.';
+                    output += '.';
+                    previous_input += '.';
+                    document.getElementById('output').innerHTML=output;
+                }
+            }
+        }
+        //operator must be a reserved word so i called the function sign
+        function sign(sign){
+            console.log("sign function");
+            console.log("lhs: " + lhs);
+            console.log("rhs: " + rhs);
+            prev_operator = operator; //just in case we need the old value
+            operator=sign; //set global operator variable
+            is_operator_set = true; //set boolean so we will work on rhs after this
+            //change sign to actual operator
+            if(sign == "divide")
+                sign = "/";
+            else if(sign == "mult")
+                sign= "*";
+            else if(sign == "add")
+                sign= '+';
+            else if(sign == "sub")
+                sign = '-';
+            //make a special case that we have our second operator. we need to total the output and continue
+            if(rhs.length>0){ //we know this is our second operator, total what we have and continue
+                if(prev_operator == 'add')
+                    total_calc = Number(lhs) + Number(rhs); //cast to number from string
+                else if(prev_operator == 'sub')
+                    total_calc = Number(lhs) - Number(rhs);
+                else if(prev_operator == 'mult')
+                    total_calc = Number(lhs) * Number(rhs);
+                else if(prev_operator == 'divide')
+                    total_calc = Number(lhs) / Number(rhs);
+                //now we need to update our values in this case
+                previous_input = total_calc + " " + sign;
+                lhs = total_calc;
+                rhs = "";
+                output="";
+                document.getElementById('previous_input').innerHTML=previous_input;
+                document.getElementById('output').innerHTML=total_calc;
+            }
+            else{ //this is our first operator and we can continue without totaling anything here
+                previous_input = output + " " + sign + " ";
+                document.getElementById('previous_input').innerHTML=previous_input;
+                output=""; //remove output input value but dont update html for now
+            }
+        }
+
+    </script>
+
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="grid-container">
+        <div id="previous_input">input</div>
+        <div id="output">output</div>
+        <button class = "topLeft" onclick=clear_all()>AC</button>
+        <button class = "topRight" onclick=del()>DEL</button>
+        <button onclick=operand(7)>7</button>
+        <button onclick=operand(8)>8</button>
+        <button onclick=operand(9)>9</button>
+        <button onclick=sign("divide")>/</button>
+        <button onclick=operand(4)>4</button>
+        <button onclick=operand(5)>5</button>
+        <button onclick=operand(6)>6</button>
+        <button onclick=sign("mult")>*</button>
+        <button onclick=operand(1)>1</button>
+        <button onclick=operand(2)>2</button>
+        <button onclick=operand(3)>3</button>
+        <button onclick=sign("sub")>-</button>
+        <button onclick=operand(0)>0</button>
+        <button onclick=decimal()>.</button>
+        <button onclick=total()>=</button>
+        <button onclick=sign("add")>+</button>
+</body>
+</html>
